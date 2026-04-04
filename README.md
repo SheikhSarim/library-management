@@ -1,98 +1,186 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📚 Library Management System API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A robust **Library Management System** built with **NestJS**, **PostgreSQL**, and **TypeORM**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Overview
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This backend API demonstrates a complete Library Management System with proper database relationships and clean architecture.
 
-## Project setup
+**Tech Stack:**
 
-```bash
-$ npm install
+- **NestJS** — Framework
+- **PostgreSQL** — Database
+- **TypeORM** — ORM
+- **Swagger** — API Documentation
+- **Class Validator** — Input Validation
+
+---
+
+## 🧩 Features
+
+- 👤 Member Management with **automatic** Membership Card generation
+- 🆔 One-to-One Relationship: Member ↔ MembershipCard
+- 🆔 Membership Card retrieval
+- ✍️ Author Management
+- 📘 Book Management with Author association
+- 🔄 Borrowing System (Many-to-Many relationship between Member and Book)
+- Consistent API response format
+
+---
+
+## 🗄️ Database Relationships
+
+```
+Member ──── MembershipCard   (1:1)
+Author ──── Book             (1:N)
+Member ──── Borrowing ──── Book   (M:N)
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## 🗂️ ERD Diagrams
 
-# watch mode
-$ npm run start:dev
+> Visual representation of the database schema and entity relationships.
 
-# production mode
-$ npm run start:prod
+### Full ERD
+
+![Full ERD](./ERD-Diagrams/Core%20ERD.png)
+
+### Member & Membership Card (1:1)
+
+![Member ERD](./ERD-Diagrams/One-to-one.png)
+
+### Author & Book (1:N)
+
+![Author Book ERD](./ERD-Diagrams/One-to-Many.png)
+
+### Borrowing System (M:N)
+
+![Borrowing ERD](./ERD-Diagrams/Many-to-Many.png)
+
+---
+
+## 🔗 API Endpoints
+
+### 👤 Members
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/members` | Create a new member (auto-generates Membership Card) |
+| `GET` | `/api/v1/members` | Get all members |
+| `GET` | `/api/v1/members/:id` | Get member by ID |
+
+### 🆔 Membership Cards
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/membership-cards/member/:memberId` | Get membership card by member ID |
+
+
+
+### ✍️ Authors
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/authors` | Create a new author |
+| `GET` | `/api/v1/authors` | Get all authors |
+
+### 📘 Books
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/books` | Create a new book with author |
+| `GET` | `/api/v1/books` | Get all books |
+| `GET` | `/api/v1/books/:id` | Get book by ID |
+
+### 🔄 Borrowings
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/borrowings` | Borrow a book |
+
+---
+
+## 📡 Response Format
+
+All endpoints follow this consistent structure:
+
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { }
+}
 ```
 
-## Run tests
+---
+
+## 📚 Swagger Documentation
+
+Interactive API documentation is available at:
+
+🔗 **Swagger UI:** `http://localhost:3000/api`
+
+---
+
+## ⚙️ Installation & Setup
 
 ```bash
-# unit tests
-$ npm run test
+# 1. Clone the project
+git clone https://github.com/SheikhSarim/library-management.git
+cd library-management-system
 
-# e2e tests
-$ npm run test:e2e
+# 2. Install dependencies
+npm install
 
-# test coverage
-$ npm run test:cov
+# 3. Configure PostgreSQL database
+# Update host, username, password, and database name in app.module.ts
+
+# 4. Run the application
+npm run start:dev
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 🧪 Testing
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+You can test the APIs using:
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+- **Swagger UI** — `http://localhost:3000/api/docs`
+- **Postman**
+- **`.http` files** — included in each module
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🛠️ Key Business Logic
 
-Check out a few resources that may come in handy when working with NestJS:
+- Membership Card is automatically generated when a member is created
+- Proper validation of member and book existence before borrowing
+- Clean separation of concerns (Controllers, Services, Entities, DTOs)
+- Consistent and readable API responses
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## 🚀 Future Improvements
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- JWT Authentication & Authorization
+- Book availability tracking
+- Return book functionality with due dates and fines
+- Pagination and search support
+- Admin dashboard
+- Redis caching
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 🧑‍💻 Developer
 
-## License
+**Sarim** — Backend System Design Assignment  
+Built with **NestJS** + **PostgreSQL** + **TypeORM**
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+## 📄 License
+
+This project is developed for educational purposes only.
