@@ -29,7 +29,7 @@ export class Member {
   updatedAt!: Date;
 
   @OneToOne(() => MembershipCard, (card) => card.member, {  cascade: true})
-  membershipCard!: MembershipCard;
+  membershipCard?: MembershipCard;
 
   @OneToMany(() => Borrowing, (borrowing) => borrowing.member)
   borrowings?: Borrowing[];
