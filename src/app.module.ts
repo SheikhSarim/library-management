@@ -7,18 +7,31 @@ import { BookModule } from './modules/book/book.module';
 import { AuthorModule } from './modules/author/author.module';
 import { MembershipCardModule } from './modules/membership-card/membership-card.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import appConfig from './config/app.config';
+import dbConfig from './config/db.config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'sarim9999',
-      database: 'library-ms-db',
-      autoLoadEntities: true,
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env.development',
+      load: [appConfig, dbConfig],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        // entities: [User],
+        type: 'postgres',
+        autoLoadEntities: configService.get('database.autoLoadEntities'),
+        synchronize: configService.get('database.synchronize'),
+        port: configService.get('database.port'),
+        host: configService.get('database.host'),
+        username: configService.get('database.user'),
+        password: configService.get('database.password'),
+        database: configService.get('database.name'),
+      }),
     }),
     MemberModule,
     MembershipCardModule,
