@@ -1,8 +1,8 @@
-// src/modules/member/services/member.service.ts
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
+  ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -21,25 +21,39 @@ export class MemberService {
   ) {}
 
   async create(createMemberDto: CreateMemberDto): Promise<Member> {
-    const issueDate = new Date();
-    const expiryDate = new Date(issueDate);
-    expiryDate.setFullYear(issueDate.getFullYear() + 1);
+    try {
+      const issueDate = new Date();
+      const expiryDate = new Date(issueDate);
+      expiryDate.setFullYear(issueDate.getFullYear() + 1);
 
-    const member = this.memberRepository.create({
-      ...createMemberDto,
-      membershipCard: {
-        issueDate,
-        expiryDate,
-      },
-    });
+      const member = this.memberRepository.create({
+        ...createMemberDto,
+        membershipCard: {
+          issueDate,
+          expiryDate,
+        },
+      });
 
-    return await this.memberRepository.save(member);
+      return await this.memberRepository.save(member);
+    } catch (error: any) {
+      if (error.code === '23505') {
+        throw new ConflictException('A member with this email already exists');
+      }
+      throw new InternalServerErrorException(
+        'Something went wrong while creating member',
+      );
+    }
   }
 
   async findAll(): Promise<Member[]> {
-    return await this.memberRepository.find({
-      relations: ['membershipCard'],
-    });
+    try {
+      return await this.memberRepository.find({
+        relations: ['membershipCard'],
+      });
+    } catch (error) {
+      console.error('Find All Members Error:', error);
+      throw new InternalServerErrorException('Failed to fetch members');
+    }
   }
 
   async findOne(id: number): Promise<Member> {

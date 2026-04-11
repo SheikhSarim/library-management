@@ -1,6 +1,8 @@
 import {
   Injectable,
   BadRequestException,
+  ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -20,33 +22,43 @@ export class BorrowingService {
   ) {}
 
   async borrowBook(borrowBookDto: BorrowBookDto): Promise<any> {
-    const member = await this.memberService.findOne(borrowBookDto.memberId);
-    const book = await this.bookService.findOne(borrowBookDto.bookId);
-    const existingBorrowing = await this.borrowingRepository.findOne({
-      where: { book: { id: book.id }, returnDate: IsNull() },
-    });
-    if (existingBorrowing) {
-      throw new BadRequestException(
-        `Book '${book.title}' is already borrowed.`,
-      );
+    try {
+      const member = await this.memberService.findOne(borrowBookDto.memberId);
+      const book = await this.bookService.findOne(borrowBookDto.bookId);
+      const existingBorrowing = await this.borrowingRepository.findOne({
+        where: { book: { id: book.id }, returnDate: IsNull() },
+      });
+      if (existingBorrowing) {
+        throw new BadRequestException(
+          `Book '${book.title}' is already borrowed.`,
+        );
+      }
+
+      const borrowing = this.borrowingRepository.create({
+        member,
+        book,
+        borrowDate: new Date(),
+      });
+
+      const savedBorrowing = await this.borrowingRepository.save(borrowing);
+
+      return {
+        id: savedBorrowing.id,
+        memberId: member.id,
+        memberName: member.name,
+        bookId: book.id,
+        bookTitle: book.title,
+        borrowDate: savedBorrowing.borrowDate,
+        createdAt: savedBorrowing.createdAt,
+      };
+    } catch (error: any) {
+      if (error.code === '23505') {
+        throw new ConflictException(
+          'This book is already borrowed by the member',
+        );
+      }
+      console.error('Borrow Book Error:', error);
+      throw new InternalServerErrorException('Failed to borrow the book');
     }
-
-    const borrowing = this.borrowingRepository.create({
-      member,
-      book,
-      borrowDate: new Date(),
-    });
-
-    const savedBorrowing = await this.borrowingRepository.save(borrowing);
-
-    return {
-      id: savedBorrowing.id,
-      memberId: member.id,
-      memberName: member.name,
-      bookId: book.id,
-      bookTitle: book.title, 
-      borrowDate: savedBorrowing.borrowDate,
-      createdAt: savedBorrowing.createdAt,
-    };
   }
 }

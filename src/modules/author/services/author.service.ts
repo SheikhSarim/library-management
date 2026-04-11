@@ -1,5 +1,10 @@
 // src/modules/author/services/author.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Author } from '../entities/author.entity';
@@ -13,14 +18,28 @@ export class AuthorService {
   ) {}
 
   async create(createAuthorDto: CreateAuthorDto): Promise<Author> {
-    const author = this.authorRepository.create(createAuthorDto);
-    return await this.authorRepository.save(author);
+    try {
+      const author = this.authorRepository.create(createAuthorDto);
+      return await this.authorRepository.save(author);
+    } catch (error: any) {
+      if (error.code === '23505') {
+        throw new ConflictException('An author with this name already exists');
+      }
+      throw new InternalServerErrorException(
+        'Something went wrong while creating author',
+      );
+    }
   }
 
   async findAll(): Promise<Author[]> {
-    return await this.authorRepository.find({
-      relations: ['books'], 
-    });
+    try {
+      return await this.authorRepository.find({
+        relations: ['books'],
+      });
+    } catch (error: any) {
+      console.error('Find All Authors Error:', error);
+      throw new InternalServerErrorException('Failed to fetch authors');
+    }
   }
 
   async findOne(id: number): Promise<Author> {
