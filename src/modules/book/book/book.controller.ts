@@ -1,7 +1,17 @@
-import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
 import { BookService } from '../services/book.service';
 import { CreateBookDto } from '../dto/create-book.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 
 @ApiTags('Books')
 @Controller('api/v1/books')
@@ -21,13 +31,15 @@ export class BookController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all books' })
-  async findAll() {
-    const books = await this.bookService.findAll();
+  @ApiOperation({ summary: 'Get all books with pagination' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
+  async findAll(@Query() paginationQueryDto: PaginationQueryDto) {
+    const books = await this.bookService.findAll(paginationQueryDto);
     return {
       success: true,
       message: 'Books retrieved successfully',
-      data: books,
+      ...books,
     };
   }
 

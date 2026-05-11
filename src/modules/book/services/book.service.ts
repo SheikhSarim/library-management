@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { Book } from '../entities/book.entity';
 import { CreateBookDto } from '../dto/create-book.dto';
 import { AuthorService } from '../../author/services/author.service';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { PaginationProvider } from '../../../common/provider/pagination.provider';
 
 @Injectable()
 export class BookService {
@@ -17,6 +19,7 @@ export class BookService {
     private readonly bookRepository: Repository<Book>,
 
     private readonly authorService: AuthorService,
+    private readonly paginationProvider: PaginationProvider,
   ) {}
 
   async create(createBookDto: CreateBookDto): Promise<any> {
@@ -50,20 +53,24 @@ export class BookService {
     }
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(paginationQuery: PaginationQueryDto): Promise<any> {
     try {
-      const books = await this.bookRepository.find({
-        relations: ['author'],
-      });
+      const paginatedResult = await this.paginationProvider.paginateQuery(
+        paginationQuery,
+        this.bookRepository,
+      );
 
-      return books.map((book) => ({
-        id: book.id,
-        title: book.title,
-        publishedYear: book.publishedYear,
-        authorId: book.author?.id,
-        authorName: book.author?.name,
-        createdAt: book.createdAt,
-      }));
+      return {
+        data: paginatedResult.data.map((book) => ({
+          id: book.id,
+          title: book.title,
+          publishedYear: book.publishedYear,
+          authorId: book.author?.id,
+          authorName: book.author?.name,
+          createdAt: book.createdAt,
+        })),
+        meta: paginatedResult.meta,
+      };
     } catch (error: any) {
       throw new InternalServerErrorException('Failed to fetch books');
     }

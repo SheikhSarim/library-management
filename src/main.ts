@@ -9,16 +9,20 @@ async function bootstrap() {
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,            // Strip unknown properties
+      whitelist: true, // Strip unknown properties
       forbidNonWhitelisted: true, // Throw error if unknown properties are sent
-      transform: true,            // Auto-transform payloads to DTO instances
+      transform: true, // Auto-transform payloads to DTO instances
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Library Management API')
-    .setDescription(`
+    .setDescription(
+      `
 This NestJS project demonstrates a Library Management System backend with TypeORM + PostgreSQL.
 
 Features:
@@ -29,7 +33,8 @@ Features:
 • PostgreSQL database with TypeORM
 • Validation using class-validator
 • Swagger documentation for all endpoints
-    `)
+    `,
+    )
     .setVersion('1.0')
     .setTermsOfService('http://localhost:3000/terms')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
