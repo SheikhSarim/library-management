@@ -10,11 +10,11 @@ export class CreateMemberDto {
   @IsNotEmpty()
   name!: string;
 
-  @ApiProperty({
-    description: 'Email address of the member',
-    example: 'john.doe@example.com',
-  })
-  @IsEmail()
-  @IsNotEmpty()
-  email!: string;
+  // @ApiProperty({
+  //   description: 'Email address of the member',
+  //   example: 'john.doe@example.com',
+  // })
+  // @IsEmail()
+  // @IsNotEmpty()
+  // email!: string;
 }

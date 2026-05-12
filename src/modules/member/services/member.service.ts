@@ -3,12 +3,12 @@ import {
   NotFoundException,
   ConflictException,
   InternalServerErrorException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Member } from '../entities/member.entity';
-import { CreateMemberDto } from '../dto/create-member.dto';
-import { MembershipCard } from '../../membership-card/entities/membership-card.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Member } from "../entities/member.entity";
+import { MembershipCard } from "../../membership-card/entities/membership-card.entity";
+import { User } from "../../users/entities/user.entity";
 
 @Injectable()
 export class MemberService {
@@ -20,14 +20,15 @@ export class MemberService {
     private readonly cardRepository: Repository<MembershipCard>,
   ) {}
 
-  async create(createMemberDto: CreateMemberDto): Promise<Member> {
+  // Auth register ke baad auto-call hoga
+  async createForUser(user: User): Promise<Member> {
     try {
       const issueDate = new Date();
       const expiryDate = new Date(issueDate);
       expiryDate.setFullYear(issueDate.getFullYear() + 1);
 
       const member = this.memberRepository.create({
-        ...createMemberDto,
+        user,
         membershipCard: {
           issueDate,
           expiryDate,
@@ -36,34 +37,39 @@ export class MemberService {
 
       return await this.memberRepository.save(member);
     } catch (error: any) {
-      if (error.code === '23505') {
-        throw new ConflictException('A member with this email already exists');
+      if (error.code === "23505") {
+        throw new ConflictException("Member already exists for this user");
       }
       throw new InternalServerErrorException(
-        'Something went wrong while creating member',
+        "Something went wrong while creating member",
       );
     }
   }
 
   async findAll(): Promise<Member[]> {
-    try {
-      return await this.memberRepository.find({
-        relations: ['membershipCard'],
-      });
-    } catch (error) {
-      console.error('Find All Members Error:', error);
-      throw new InternalServerErrorException('Failed to fetch members');
-    }
+    return this.memberRepository.find({
+      relations: ["user", "membershipCard"],
+    });
   }
 
   async findOne(id: number): Promise<Member> {
     const member = await this.memberRepository.findOne({
       where: { id },
-      relations: ['membershipCard', 'borrowings'],
+      relations: ["user", "membershipCard", "borrowings"],
     });
-
     if (!member) {
-      throw new NotFoundException(`Member with ID ${id} not found`);
+      throw new NotFoundException("Member with ID " + id + " not found");
+    }
+    return member;
+  }
+
+  async findByUserId(userId: number): Promise<Member> {
+    const member = await this.memberRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ["user", "membershipCard"],
+    });
+    if (!member) {
+      throw new NotFoundException("No member profile found for this user");
     }
     return member;
   }

@@ -17,12 +17,4 @@ export class CreateBookDto {
   @IsNumber()
   @IsOptional()
   publishedYear?: number;
-
-  @ApiProperty({
-    example: 1,
-    description: 'ID of the author who wrote the book',
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  authorId!: number;
 }

@@ -10,12 +10,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import appConfig from './config/app.config';
 import dbConfig from './config/db.config';
+import { UsersModule } from './modules/users/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env.development',
+      envFilePath: '.env',
       load: [appConfig, dbConfig],
     }),
     TypeOrmModule.forRootAsync({
@@ -33,6 +35,8 @@ import dbConfig from './config/db.config';
         database: configService.get('database.name'),
       }),
     }),
+    UsersModule,
+    AuthModule,
     MemberModule,
     MembershipCardModule,
     AuthorModule,

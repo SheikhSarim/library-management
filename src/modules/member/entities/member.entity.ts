@@ -1,26 +1,26 @@
-// src/modules/member/entities/member.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   OneToOne,
   OneToMany,
+  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { MembershipCard } from '../../membership-card/entities/membership-card.entity';
-import { Borrowing } from '../../borrowing/entities/borrowing.entity';
+} from "typeorm";
+import { User } from "../../users/entities/user.entity";
+import { MembershipCard } from "../../membership-card/entities/membership-card.entity";
+import { Borrowing } from "../../borrowing/entities/borrowing.entity";
 
-@Entity('members')
+@Entity("members")
 export class Member {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ length: 100 })
-  name!: string;
-
-  @Column({ unique: true })
-  email!: string;
+  // User ke saath 1:1 — Member ek User ka library profile hai
+  @OneToOne(() => User, { eager: true })
+  @JoinColumn()
+  user!: User;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -28,7 +28,7 @@ export class Member {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToOne(() => MembershipCard, (card) => card.member, {  cascade: true})
+  @OneToOne(() => MembershipCard, (card) => card.member, { cascade: true })
   membershipCard?: MembershipCard;
 
   @OneToMany(() => Borrowing, (borrowing) => borrowing.member)

@@ -17,14 +17,30 @@ export class AuthorService {
     private readonly authorRepository: Repository<Author>,
   ) {}
 
-  async create(createAuthorDto: CreateAuthorDto): Promise<Author> {
+  async create(user: any): Promise<Author> {
     try {
-      const author = this.authorRepository.create(createAuthorDto);
+      // 🔐 1. Check if author already exists for this user
+      const existingAuthor = await this.authorRepository.findOne({
+        where: { userId: user.id },
+      });
+
+      if (existingAuthor) {
+        return existingAuthor;
+      }
+
+      // 👇 2. Create author linked to userId (FK)
+      const author = this.authorRepository.create({
+        userId: user.id,
+      });
+
       return await this.authorRepository.save(author);
     } catch (error: any) {
+      console.error('🔥 AUTHOR CREATE ERROR:', error);
+
       if (error.code === '23505') {
-        throw new ConflictException('An author with this name already exists');
+        throw new ConflictException('Author already exists for this user');
       }
+
       throw new InternalServerErrorException(
         'Something went wrong while creating author',
       );
@@ -42,15 +58,16 @@ export class AuthorService {
     }
   }
 
-  async findOne(id: number): Promise<Author> {
+  async findByUserId(userId: number): Promise<Author> {
     const author = await this.authorRepository.findOne({
-      where: { id },
-      relations: ['books'],
+      where: { userId },
+      relations: ['user'],
     });
 
     if (!author) {
-      throw new NotFoundException(`Author with ID ${id} not found`);
+      throw new NotFoundException('Author not found');
     }
+
     return author;
   }
 }
