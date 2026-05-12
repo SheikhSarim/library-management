@@ -7,8 +7,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthorService } from '../services/author.service';
-import { CreateAuthorDto } from '../dto/create-author.dto';
+import { AuthorService } from './services/author.service';
+import { CreateAuthorDto } from './dto/create-author.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Authors')

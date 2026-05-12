@@ -8,10 +8,10 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { BookService } from '../services/book.service';
-import { CreateBookDto } from '../dto/create-book.dto';
+import { BookService } from './services/book.service';
+import { CreateBookDto } from './dto/create-book.dto';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @ApiTags('Books')
 @Controller('api/v1/books')

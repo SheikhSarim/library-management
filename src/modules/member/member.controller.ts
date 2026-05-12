@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { MemberService } from '../services/member.service';
-import { CreateMemberDto } from '../dto/create-member.dto';
+import { MemberService } from './services/member.service';
+import { CreateMemberDto } from './dto/create-member.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Members')

@@ -1,6 +1,6 @@
 // src/modules/membership-card/membership-card.controller.ts
 import { Controller, Get, Param } from '@nestjs/common';
-import { MembershipCardService } from '../services/membership-card.service';
+import { MembershipCardService } from './services/membership-card.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Membership Cards')

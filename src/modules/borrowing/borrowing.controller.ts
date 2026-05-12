@@ -1,7 +1,7 @@
 // src/modules/borrowing/borrowing.controller.ts
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { BorrowingService } from '../services/borrowing.service';
-import { BorrowBookDto } from '../dto/borrow-book.dto';
+import { BorrowingService } from './services/borrowing.service';
+import { BorrowBookDto } from './dto/borrow-book.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Borrowings')
