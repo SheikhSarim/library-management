@@ -1,21 +1,45 @@
-import { Injectable } from "@nestjs/common";
-import { RegisterDto } from "../dto/register.dto";
-import { LoginDto } from "../dto/login.dto";
-import { RegisterProvider } from "./register.provider";
-import { LoginProvider } from "./login.provider";
+import { Injectable } from '@nestjs/common';
+import { RegisterMemberDto } from '../dto/register-member.dto';
+
+import { GoogleTokenDto } from '../social/dtos/google-token.dto';
+import { RegisterMemberProvider } from './register-member.provider';
+import { LoginMemberDto } from '../dto/login-member.dto';
+import { LoginMemberProvider } from './login-member.provider';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly registerProvider: RegisterProvider,
-    private readonly loginProvider: LoginProvider,
+    private readonly registerMemberProvider: RegisterMemberProvider,
+    private readonly loginMemberProvider: LoginMemberProvider,
+    // private readonly registerAuthorProvider: RegisterAuthorProvider,
+    // private readonly loginAuthorProvider: LoginAuthorProvider,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    return this.registerProvider.register(registerDto);
+  // ── MEMBER ──
+  registerMember(dto: RegisterMemberDto) {
+    return this.registerMemberProvider.registerByEmail(dto);
   }
+  registerMemberGoogle(dto: GoogleTokenDto) {
+    return this.registerMemberProvider.registerByGoogle(dto);
+  }
+  loginMember(dto: LoginMemberDto) {
+    return this.loginMemberProvider.loginByEmail(dto);
+  }
+  // loginMemberGoogle(dto: GoogleTokenDto) {
+  //   return this.loginMemberProvider.loginByGoogle(dto);
+  // }
 
-  async login(loginDto: LoginDto) {
-    return this.loginProvider.login(loginDto);
-  }
+  // // ── AUTHOR ──
+  // registerAuthor(dto: RegisterAuthorDto) {
+  //   return this.registerAuthorProvider.registerByEmail(dto);
+  // }
+  // registerAuthorGoogle(dto: GoogleTokenDto) {
+  //   return this.registerAuthorProvider.registerByGoogle(dto);
+  // }
+  // loginAuthor(dto: LoginAuthorDto) {
+  //   return this.loginAuthorProvider.loginByEmail(dto);
+  // }
+  // loginAuthorGoogle(dto: GoogleTokenDto) {
+  //   return this.loginAuthorProvider.loginByGoogle(dto);
+  // }
 }
