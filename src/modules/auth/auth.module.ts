@@ -28,6 +28,8 @@ import { MemberModule } from "../member/member.module";
 import { GoogleAuthModule } from "./social/google.module";
 import { AuthorModule } from "../author/author.module";
 import { LoginMemberProvider } from "./providers/login-member.provider";
+import { RegisterAuthorProvider } from "./providers/register-author.provider";
+import { LoginAuthorProvider } from "./providers/login-author.provider";
 
 @Module({
   imports: [
@@ -44,9 +46,9 @@ import { LoginMemberProvider } from "./providers/login-member.provider";
 
     // ── Role-based providers ──
     RegisterMemberProvider,
-    // RegisterAuthorProvider,
+    RegisterAuthorProvider,
     LoginMemberProvider,
-    // LoginAuthorProvider,
+    LoginAuthorProvider,
 
 
     GenerateTokenProvider,

@@ -5,14 +5,18 @@ import { GoogleTokenDto } from '../social/dtos/google-token.dto';
 import { RegisterMemberProvider } from './register-member.provider';
 import { LoginMemberDto } from '../dto/login-member.dto';
 import { LoginMemberProvider } from './login-member.provider';
+import { RegisterAuthorDto } from '../dto/register-author.dto';
+import { RegisterAuthorProvider } from './register-author.provider';
+import { LoginAuthorDto } from '../dto/login-author.dto';
+import { LoginAuthorProvider } from './login-author.provider';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly registerMemberProvider: RegisterMemberProvider,
     private readonly loginMemberProvider: LoginMemberProvider,
-    // private readonly registerAuthorProvider: RegisterAuthorProvider,
-    // private readonly loginAuthorProvider: LoginAuthorProvider,
+    private readonly registerAuthorProvider: RegisterAuthorProvider,
+    private readonly loginAuthorProvider: LoginAuthorProvider,
   ) {}
 
   // ── MEMBER ──
@@ -30,15 +34,15 @@ export class AuthService {
   // }
 
   // // ── AUTHOR ──
-  // registerAuthor(dto: RegisterAuthorDto) {
-  //   return this.registerAuthorProvider.registerByEmail(dto);
-  // }
+  registerAuthor(dto: RegisterAuthorDto) {
+    return this.registerAuthorProvider.registerByEmail(dto);
+  }
   // registerAuthorGoogle(dto: GoogleTokenDto) {
   //   return this.registerAuthorProvider.registerByGoogle(dto);
   // }
-  // loginAuthor(dto: LoginAuthorDto) {
-  //   return this.loginAuthorProvider.loginByEmail(dto);
-  // }
+  loginAuthor(dto: LoginAuthorDto) {
+    return this.loginAuthorProvider.loginByEmail(dto);
+  }
   // loginAuthorGoogle(dto: GoogleTokenDto) {
   //   return this.loginAuthorProvider.loginByGoogle(dto);
   // }

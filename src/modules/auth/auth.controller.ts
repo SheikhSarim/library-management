@@ -9,6 +9,8 @@ import { GoogleTokenDto } from './social/dtos/google-token.dto';
 import { Auth } from './decorators/auth.decorator';
 import { AuthType } from './enum/auth-type.enum';
 import { LoginMemberDto } from './dto/login-member.dto';
+import { RegisterAuthorDto } from './dto/register-author.dto';
+import { LoginAuthorDto } from './dto/login-author.dto';
 
 @ApiTags('Auth')
 @Auth(AuthType.None) // saare auth routes public hain
@@ -51,11 +53,11 @@ export class AuthController {
   // // ════════════════════════════
   // // AUTHOR — REGISTER
   // // ════════════════════════════
-  // @Post('author/register')
-  // @ApiOperation({ summary: 'Register new Author (email + password)' })
-  // registerAuthor(@Body() dto: RegisterAuthorDto) {
-  //   return this.authService.registerAuthor(dto);
-  // }
+  @Post('author/register')
+  @ApiOperation({ summary: 'Register new Author (email + password)' })
+  registerAuthor(@Body() dto: RegisterAuthorDto) {
+    return this.authService.registerAuthor(dto);
+  }
 
   // @Post('author/register/google')
   // @ApiOperation({ summary: 'Register new Author via Google OAuth' })
@@ -66,12 +68,12 @@ export class AuthController {
   // // ════════════════════════════
   // // AUTHOR — LOGIN
   // // ════════════════════════════
-  // @Post('author/login')
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({ summary: 'Author login (email + password)' })
-  // loginAuthor(@Body() dto: LoginAuthorDto) {
-  //   return this.authService.loginAuthor(dto);
-  // }
+  @Post('author/login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Author login (email + password)' })
+  loginAuthor(@Body() dto: LoginAuthorDto) {
+    return this.authService.loginAuthor(dto);
+  }
 
   // @Post('author/login/google')
   // @HttpCode(HttpStatus.OK)
