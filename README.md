@@ -63,11 +63,11 @@ Member  ──── Borrowing ──── Book   (M:N)
 
 ### Author & Book (1:N)
 
-![Author Book ERD](./ERD-Diagrams/OnetoMany.png)
+![Author Book ERD](./ERD-Diagrams/OneToMany.png)
 
 ### Borrowing System (M:N)
 
-![Borrowing ERD](./ERD-Diagrams/ManytoMany.png)
+![Borrowing ERD](./ERD-Diagrams/ManyToMany.png)
 
 ---
 
