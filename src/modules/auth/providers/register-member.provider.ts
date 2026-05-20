@@ -1,4 +1,9 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Response } from 'express';
 import { RegisterMemberDto } from '../dto/register-member.dto';
 import { GoogleTokenDto } from '../social/dtos/google-token.dto';
 import { UsersService } from '../../users/service/users.service';
@@ -18,16 +23,49 @@ export class RegisterMemberProvider {
     private readonly googleAuthService: GoogleAuthService,
   ) {}
 
-  async registerByEmail(dto: RegisterMemberDto) {
-    const existing = await this.usersService.findUserByEmailOrNull(dto.email);
-    if (existing) {
-      throw new ConflictException('Email already registered.');
+  // =========================
+  // 🔥 EMAIL LOGIN / REGISTER
+  // =========================
+  async registerByEmail(dto: RegisterMemberDto, response?: Response) {
+    let user = await this.usersService.findUserByEmailOrNull(dto.email);
+
+    // ================= LOGIN =================
+    if (user) {
+      // 🔥 ROLE CHECK
+      if (user.role !== Role.MEMBER) {
+        throw new UnauthorizedException(
+          `This email is already registered as ${user.role}`,
+        );
+      }
+      if (!dto.password) {
+        throw new BadRequestException('Password is required to login');
+      }
+
+      const isValid = await this.hashProvider.comparePassword(
+        dto.password,
+        user.password!,
+      );
+
+      if (!isValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const tokens = await this.generateTokenProvider.generateTokens(
+        user,
+        response,
+      );
+
+      return this.buildResponse('Logged in successfully', user, tokens);
+    }
+
+    // ================= REGISTER =================
+    if (!dto.password) {
+      throw new BadRequestException('Password is required for registration');
     }
 
     const hashedPassword = await this.hashProvider.hashPassword(dto.password);
 
-    const user = await this.usersService.createUser({
-      name: dto.name,
+    user = await this.usersService.createUser({
       email: dto.email,
       password: hashedPassword,
       role: Role.MEMBER,
@@ -35,55 +73,96 @@ export class RegisterMemberProvider {
 
     const member = await this.memberService.createForUser(user);
 
-    const tokens = await this.generateTokenProvider.generateTokens(user);
+    const tokens = await this.generateTokenProvider.generateTokens(
+      user,
+      response,
+    );
 
     return {
       success: true,
-      message: 'Member registered successfully',
+      message: 'Account created and logged in successfully',
       data: {
-        user: { id: user.id, name: user.name, email: user.email, role: user.role },
-        member: { id: member.id, membershipCard: member.membershipCard },
+        user: this.sanitizeUser(user),
+        member: { id: member.id },
         ...tokens,
       },
     };
   }
 
-  async registerByGoogle(googleTokenDto: GoogleTokenDto) {
-    const googleUser = await this.googleAuthService.verifyToken(googleTokenDto.token);
+  // =========================
+  // 🔥 GOOGLE LOGIN / REGISTER
+  // =========================
+  async registerByGoogle(googleTokenDto: GoogleTokenDto, response?: Response) {
+    const googleUser = await this.googleAuthService.verifyToken(
+      googleTokenDto.token,
+    );
 
     let user = await this.usersService.findUserByEmailOrNull(googleUser.email);
 
+    // ================= LOGIN =================
     if (user) {
-      const tokens = await this.generateTokenProvider.generateTokens(user);
-      return {
-        success: true,
-        message: 'Member logged in via Google',
-        data: {
-          user: { id: user.id, name: user.name, email: user.email, role: user.role },
-          ...tokens,
-        },
-      };
+      // 🔥 ROLE CHECK
+      if (user.role !== Role.MEMBER) {
+        throw new UnauthorizedException(
+          `This email is already registered as ${user.role}`,
+        );
+      }
+
+      const tokens = await this.generateTokenProvider.generateTokens(
+        user,
+        response,
+      );
+
+      return this.buildResponse('Logged in via Google', user, tokens);
     }
 
+    // ================= REGISTER =================
     user = await this.usersService.createGoogleUser({
-      name: googleUser.name,
       email: googleUser.email,
       googleId: googleUser.googleId,
-      role: Role.MEMBER,
+      role: googleTokenDto.role || Role.MEMBER,
+      name: googleUser.name || '',
     });
-
 
     const member = await this.memberService.createForUser(user);
 
-
-    const tokens = await this.generateTokenProvider.generateTokens(user);
+    const tokens = await this.generateTokenProvider.generateTokens(
+      user,
+      response,
+    );
 
     return {
       success: true,
-      message: 'Member registered successfully via Google',
+      message: 'Registered via Google successfully',
       data: {
-        user: { id: user.id, name: user.name, email: user.email, role: user.role },
-        member: { id: member.id, membershipCard: member.membershipCard },
+        user: this.sanitizeUser(user),
+        member: {
+          id: member.id,
+          membershipCard: member.membershipCard,
+        },
+        ...tokens,
+      },
+    };
+  }
+
+  // =========================
+  // 🧠 HELPERS (CLEAN CODE)
+  // =========================
+
+  private sanitizeUser(user: any) {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+  }
+
+  private buildResponse(message: string, user: any, tokens: any) {
+    return {
+      success: true,
+      message,
+      data: {
+        user: this.sanitizeUser(user),
         ...tokens,
       },
     };
