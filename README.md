@@ -1,41 +1,49 @@
 # 📚 Library Management System API
 
-A robust **Library Management System** built with **NestJS**, **PostgreSQL**, and **TypeORM**.
+A production-ready **Library Management System** built with **NestJS**, **PostgreSQL**, **TypeORM**, and **Google OAuth 2.0**.
 
 ---
 
 ## 🚀 Overview
 
-This backend API demonstrates a complete Library Management System with proper database relationships and clean architecture.
+A full-featured Library Management System backend with JWT authentication, role-based access control, Google OAuth 2.0, and clean modular architecture.
 
-**Tech Stack:**
+### Tech Stack
 
-- **NestJS** — Framework
-- **PostgreSQL** — Database
-- **TypeORM** — ORM
-- **Swagger** — API Documentation
-- **Class Validator** — Input Validation
+* **NestJS** — Framework
+* **PostgreSQL** — Database
+* **TypeORM** — ORM
+* **JWT** — Authentication (Access + Refresh Tokens)
+* **Google OAuth 2.0** — Social Authentication
+* **Bcrypt** — Password Hashing
+* **Swagger** — API Documentation
+* **Class Validator** — Input Validation
+* **Cookie Parser** — HTTP-Only Cookie Management
 
 ---
 
 ## 🧩 Features
 
-- 👤 Member Management with **automatic** Membership Card generation
-- 🆔 One-to-One Relationship: Member ↔ MembershipCard
-- 🆔 Membership Card retrieval
-- ✍️ Author Management
-- 📘 Book Management with Author association
-- 🔄 Borrowing System (Many-to-Many relationship between Member and Book)
-- Consistent API response format
+* 🔐 JWT Authentication with Access & Refresh Tokens
+* 🔑 Google OAuth 2.0 Authentication
+* 👥 Role-Based Access Control (RBAC)
+* 👤 Member Management System
+* ✍️ Author Management System
+* 📘 Book Management
+* 🔄 Borrowing System
+* 🆔 Auto-generated Membership Cards
+* 📄 Consistent API Response Structure
 
 ---
 
 ## 🗄️ Database Relationships
 
-```
-Member ──── MembershipCard   (1:1)
-Author ──── Book             (1:N)
-Member ──── Borrowing ──── Book   (M:N)
+```txt
+User    ──── Member          (1:1)
+User    ──── Author          (1:1)
+Member  ──── MembershipCard  (1:1)
+Author  ──── Book            (1:N)
+Member  ──── Borrowing ──── Book   (M:N)
 ```
 
 ---
@@ -46,82 +54,83 @@ Member ──── Borrowing ──── Book   (M:N)
 
 ### Full ERD
 
-![Full ERD](./ERD-Diagrams/Core%20ERD.png)
+![Full ERD](./ERD-Diagrams/FullERD.png)
 
 ### Member & Membership Card (1:1)
 
-![Member ERD](./ERD-Diagrams/One-to-one.png)
+![Member ERD](./ERD-Diagrams/OneToOne.png)
+![Member ERD](./ERD-Diagrams/OneToOne-Users.png)
 
 ### Author & Book (1:N)
 
-![Author Book ERD](./ERD-Diagrams/One-to-Many.png)
+![Author Book ERD](./ERD-Diagrams/OnetoMany.png)
 
 ### Borrowing System (M:N)
 
-![Borrowing ERD](./ERD-Diagrams/Many-to-Many.png)
+![Borrowing ERD](./ERD-Diagrams/ManytoMany.png)
 
 ---
 
-## 🔗 API Endpoints
+## 🏗️ Architecture
 
-### 👤 Members
+```txt
+            User (Auth Layer)
+--------------------------------------------            
+role = MEMBER        |    role = AUTHOR
+      ↓              |        ↓ 
+Member Profile       |  Author Profile
+      ↓              |        ↓
+MembershipCard       |    Book Creation
+      ↓
+Borrowing System
+```
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/members` | Create a new member (auto-generates Membership Card) |
-| `GET` | `/api/v1/members` | Get all members |
-| `GET` | `/api/v1/members/:id` | Get member by ID |
+### Separation of Concerns
 
-### 🆔 Membership Cards
+* `User` table → authentication only
+* `Member` / `Author` tables → role-specific profile data
+* `Auth Module` → login, register, JWT, Google OAuth
+* `Users Module` → DB operations only
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/v1/membership-cards/member/:memberId` | Get membership card by member ID |
+---
+
+## 🔐 Authentication Flow
+
+### Manual Register/Login
+
+```txt
+Member/Author Register
+        ↓
+Hash password → Create User → Create Profile → JWT Cookies
+```
+
+### Google OAuth 2.0
+
+```txt
+Frontend → Google Popup → ID Token + Role
+        ↓
+Backend verifyIdToken() → Create/Find User by Role → JWT Cookies
+```
 
 
+### JWT Storage
 
-### ✍️ Authors
+Tokens are stored in **HTTP-Only cookies**:
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/authors` | Create a new author |
-| `GET` | `/api/v1/authors` | Get all authors |
-
-### 📘 Books
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/books` | Create a new book with author |
-| `GET` | `/api/v1/books` | Get all books |
-| `GET` | `/api/v1/books/:id` | Get book by ID |
-
-### 🔄 Borrowings
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/borrowings` | Borrow a book |
+* `accessToken` — 1 hour TTL
+* `refreshToken` — 1 day TTL
 
 ---
 
 ## 📡 Response Format
 
-All endpoints follow this consistent structure:
-
 ```json
 {
   "success": true,
   "message": "Operation successful",
-  "data": { }
+  "data": {}
 }
 ```
-
----
-
-## 📚 Swagger Documentation
-
-Interactive API documentation is available at:
-
-🔗 **Swagger UI:** `http://localhost:3000/api`
 
 ---
 
@@ -130,57 +139,89 @@ Interactive API documentation is available at:
 ```bash
 # 1. Clone the project
 git clone https://github.com/SheikhSarim/library-management.git
-cd library-management-system
 
-# 2. Install dependencies
+# 2. Move into project
+cd library-management
+
+# 3. Install dependencies
 npm install
 
-# 3. Configure PostgreSQL database
-# Update host, username, password, and database name in app.module.ts
+# 4. Configure environment
+cp .env.example .env.development
 
-# 4. Run the application
+# 5. Run development server
 npm run start:dev
+```
+
+---
+
+## 🔧 Environment Variables
+
+```env
+# App
+PORT=3000
+ENV=development
+
+# Database
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=library-ms-db
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your_password
+DATABASE_AUTOLOAD_ENTITIES=true
+DATABASE_SYNC=true
+
+# JWT
+JWT_SECRET=your_secret_key_minimum_32_chars
+JWT_ACCESS_TTL=3600
+JWT_REFRESH_TTL=86400
+
+# Google OAuth 2.0
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+```
+
+---
+
+## 📚 Swagger Documentation
+
+```txt
+http://localhost:3000/api
 ```
 
 ---
 
 ## 🧪 Testing
 
-You can test the APIs using:
-
-- **Swagger UI** — `http://localhost:3000/api/docs`
-- **Postman**
-- **`.http` files** — included in each module
+* Swagger UI
+* Postman
+* `.http` files included in each module
 
 ---
 
 ## 🛠️ Key Business Logic
 
-- Membership Card is automatically generated when a member is created
-- Proper validation of member and book existence before borrowing
-- Clean separation of concerns (Controllers, Services, Entities, DTOs)
-- Consistent and readable API responses
+* Member registration automatically creates Membership Card
+* Author registration automatically creates Author profile
+* Borrowing requires valid Membership Card
+* Book creation restricted to AUTHOR role
+* JWT guard applied globally
+* Roles guard enforces RBAC
 
 ---
 
 ## 🚀 Future Improvements
 
-- JWT Authentication & Authorization
-- Book availability tracking
-- Return book functionality with due dates and fines
-- Pagination and search support
-- Admin dashboard
-- Redis caching
+* Return book functionality
+* Due dates & fines
+* Book availability tracking
+* Search
+* Redis caching
+* Admin dashboard
 
 ---
 
 ## 🧑‍💻 Developer
 
-**Sarim** — Backend System Design Assignment  
-Built with **NestJS** + **PostgreSQL** + **TypeORM**
+**Sarim** — Backend System Design
 
----
-
-## 📄 License
-
-This project is developed for educational purposes only.
+Built with **NestJS** + **PostgreSQL** + **TypeORM** + **Google OAuth 2.0**
