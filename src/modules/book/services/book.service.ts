@@ -54,7 +54,7 @@ export class BookService {
         title: savedBook.title,
         publishedYear: savedBook.publishedYear,
         authorId: author.id,
-        authorName: author.user.name,
+        // authorName: author.user.name,
         createdAt: savedBook.createdAt,
       };
     } catch (error: any) {

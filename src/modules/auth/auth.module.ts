@@ -1,41 +1,38 @@
-import { Module } from "@nestjs/common";
-import { JwtModule } from "@nestjs/jwt";
-import { ConfigModule } from "@nestjs/config";
-import { APP_GUARD } from "@nestjs/core";
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 
-import { AuthController } from "./auth.controller";
-import { AuthService } from "./providers/auth.service";
+import { AuthController } from './auth.controller';
+import { AuthService } from './providers/auth.service';
 
-
-import { RegisterMemberProvider } from "./providers/register-member.provider";
+import { RegisterMemberProvider } from './providers/register-member.provider';
 // import { RegisterAuthorProvider } from "./providers/register-author.provider";
 // import { LoginMemberProvider } from "./providers/login-member.provider";
 // import { LoginAuthorProvider } from "./providers/login-author.provider";
 
+import { GenerateTokenProvider } from './providers/generate-token.provider';
+import { HashProvider } from './providers/hash.provider';
+import { BcryptProvider } from './providers/bcrypt.provider';
 
-import { GenerateTokenProvider } from "./providers/generate-token.provider";
-import { HashProvider } from "./providers/hash.provider";
-import { BcryptProvider } from "./providers/bcrypt.provider";
+import { AccessTokenGuard } from './guards/access-token.guard';
+import { AuthenticationGuard } from './guards/authentication.guard';
+import { RolesGuard } from './guards/roles.guard';
 
-
-import { AccessTokenGuard } from "./guards/access-token.guard";
-import { AuthenticationGuard } from "./guards/authentication.guard";
-import { RolesGuard } from "./guards/roles.guard";
-
-import jwtConfig from "./config/jwt.config";
-import { UsersModule } from "../users/user.module";
-import { MemberModule } from "../member/member.module";
-import { GoogleAuthModule } from "./social/google.module";
-import { AuthorModule } from "../author/author.module";
-import { LoginMemberProvider } from "./providers/login-member.provider";
-import { RegisterAuthorProvider } from "./providers/register-author.provider";
-import { LoginAuthorProvider } from "./providers/login-author.provider";
+import jwtConfig from './config/jwt.config';
+import { UsersModule } from '../users/user.module';
+import { MemberModule } from '../member/member.module';
+import { GoogleAuthModule } from './social/google.module';
+import { AuthorModule } from '../author/author.module';
+// import { LoginMemberProvider } from "./providers/login-member.provider";
+import { RegisterAuthorProvider } from './providers/register-author.provider';
+// import { LoginAuthorProvider } from "./providers/login-author.provider";
 
 @Module({
   imports: [
     UsersModule,
     MemberModule,
-    AuthorModule,   
+    AuthorModule,
     GoogleAuthModule,
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync(jwtConfig.asProvider()),
@@ -47,9 +44,8 @@ import { LoginAuthorProvider } from "./providers/login-author.provider";
     // ── Role-based providers ──
     RegisterMemberProvider,
     RegisterAuthorProvider,
-    LoginMemberProvider,
-    LoginAuthorProvider,
-
+    // LoginMemberProvider,
+    // LoginAuthorProvider,
 
     GenerateTokenProvider,
     AccessTokenGuard,

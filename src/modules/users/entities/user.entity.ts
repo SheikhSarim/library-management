@@ -1,44 +1,52 @@
+// src/modules/users/entities/user.entity.ts
 import {
+  Entity,
+  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  Entity,
-  OneToOne,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
-import { Role } from '../../../common/enum/roles.enum';
-import { Author } from '../../author/entities/author.entity';
 import { Member } from '../../member/entities/member.entity';
+import { Author } from '../../author/entities/author.entity';
+import { ApiProperty } from '@nestjs/swagger';
+
+export enum Role {
+  MEMBER = 'MEMBER',
+  AUTHOR = 'AUTHOR',
+}
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ length: 100 })
-  name!: string;
-
+  @ApiProperty()
   @Column({ unique: true })
   email!: string;
 
   @Column({ nullable: true })
   password?: string;
 
-  @Column({ type: 'enum', enum: Role })
-  role!: Role;
-
-  @OneToOne(() => Author, (author) => author.user)
-  author!: Author;
-
-  @OneToOne(() => Member, (member) => member.user)
-  member!: Member;
-
   @Column({ nullable: true })
   googleId?: string;
 
+  @Column({ type: 'enum', enum: Role })
+  role!: Role;
+
+  @Column({ default: false })
+  isProfileCompleted!: boolean;
+
+  @ApiProperty()
+  @OneToOne(() => Member, (member) => member.user, { cascade: true })
+  member?: Member;
+
+  @OneToOne(() => Author, (author) => author.user, { cascade: true })
+  author?: Author;
+
   @CreateDateColumn()
-  createdAt?: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt?: Date;
+  updatedAt!: Date;
 }

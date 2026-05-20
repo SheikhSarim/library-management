@@ -1,9 +1,9 @@
-import { Injectable, RequestTimeoutException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { User } from "../entities/user.entity";
-import { Role } from "../../../common/enum/roles.enum";
-import { GoogleUser } from "../interface/google-user.interface";
+// src/modules/users/providers/create-google-user.provider.ts
+import { Injectable, RequestTimeoutException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
+import { CreateGoogleUserDto } from '../dto/create-google-user.dto';
 
 @Injectable()
 export class CreateGoogleUserProvider {
@@ -12,18 +12,18 @@ export class CreateGoogleUserProvider {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async createGoogleUser(googleUser: GoogleUser): Promise<User> {
+  async createGoogleUser(dto: CreateGoogleUserDto): Promise<User> {
     const user = this.usersRepository.create({
-      name: googleUser.email.split("@")[0], // naam email se derive karo
-      email: googleUser.email,
-      googleId: googleUser.googleId,
-      role: Role.MEMBER,
+      email: dto.email, // ← Yeh zaroori tha
+      googleId: dto.googleId,
+      role: dto.role || 'MEMBER', // fallback
     });
 
     try {
       return await this.usersRepository.save(user);
-    } catch {
-      throw new RequestTimeoutException("Could not create Google user. Try again.");
+    } catch (error) {
+      console.error('Create Google User Error:', error);
+      throw new RequestTimeoutException('Could not create Google user');
     }
   }
 }

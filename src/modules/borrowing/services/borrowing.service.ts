@@ -67,7 +67,7 @@ export class BorrowingService {
         data: {
           id: saved.id,
           memberId: member.id,
-          memberName: member.user.name,
+          // memberName: member.user.name,
           bookId: book.id,
           bookTitle: book.title,
           borrowDate: saved.borrowDate,
