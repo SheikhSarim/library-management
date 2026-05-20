@@ -1,9 +1,6 @@
 import { Controller, Get, Post, Body, Param, ParseIntPipe } from "@nestjs/common";
 import { AuthorService } from "./services/author.service";
-import { CreateAuthorDto } from "./dto/create-author.dto";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { Roles } from "../auth/decorators/roles.decorator";
-import { Role } from "../../common/enum/roles.enum";
 import { Auth } from "../auth/decorators/auth.decorator";
 import { AuthType } from "../auth/enum/auth-type.enum";
 
@@ -14,7 +11,7 @@ export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
 
   @Get()
-  @Auth(AuthType.None) // public — anyone can see authors
+  @Auth(AuthType.None) 
   @ApiOperation({ summary: "Get all authors" })
   async findAll() {
     const authors = await this.authorService.findAll();

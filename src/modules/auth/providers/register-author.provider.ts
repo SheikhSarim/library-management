@@ -1,4 +1,10 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Response } from 'express';
 import { RegisterAuthorDto } from '../dto/register-author.dto';
 import { GoogleTokenDto } from '../social/dtos/google-token.dto';
 import { UsersService } from '../../users/service/users.service';
@@ -18,88 +24,141 @@ export class RegisterAuthorProvider {
     private readonly googleAuthService: GoogleAuthService,
   ) {}
 
-  // ──────────────────────────────
-  // EMAIL + PASSWORD REGISTER
-  // ──────────────────────────────
-  async registerByEmail(dto: RegisterAuthorDto) {
-    const existing = await this.usersService.findUserByEmailOrNull(dto.email);
-    
-    if (existing) {
-      throw new ConflictException('Email already registered.');
+  async registerByEmail(dto: RegisterAuthorDto, response?: Response) {
+    let user = await this.usersService.findUserByEmailOrNull(dto.email);
+
+    // ================= LOGIN =================
+    if (user) {
+      if (user.role !== Role.AUTHOR) {
+        throw new UnauthorizedException(
+          `This email is already registered as ${user.role}`,
+        );
+      }
+
+      if (!dto.password) {
+        throw new BadRequestException('Password is required to login');
+      }
+
+      const isValid = await this.hashProvider.comparePassword(
+        dto.password,
+        user.password!,
+      );
+
+      if (!isValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const tokens = await this.generateTokenProvider.generateTokens(
+        user,
+        response,
+      );
+
+      return this.buildResponse('Logged in successfully', user, tokens);
     }
+
+    // ================= REGISTER =================
+    if (!dto.password) {
+      throw new BadRequestException('Password is required for registration');
+    }
+
     const hashedPassword = await this.hashProvider.hashPassword(dto.password);
 
-    const user = await this.usersService.createUser({
-      name: dto.name,
+    user = await this.usersService.createUser({
       email: dto.email,
       password: hashedPassword,
       role: Role.AUTHOR,
     });
 
-    const author = await this.authorService.create(user);
-    const tokens = await this.generateTokenProvider.generateTokens(user);
+    const author = await this.authorService.createForUser(user);
+
+    const tokens = await this.generateTokenProvider.generateTokens(
+      user,
+      response,
+    );
 
     return {
       success: true,
-      message: 'Author registered successfully',
+      message: 'Account created and logged in successfully',
       data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        },
+        user: this.sanitizeUser(user),
         author: { id: author.id },
         ...tokens,
       },
     };
   }
 
-  async registerByGoogle(googleTokenDto: GoogleTokenDto) {
+  // =========================
+  // 🔥 GOOGLE LOGIN / REGISTER
+  // =========================
+  async registerByGoogle(googleTokenDto: GoogleTokenDto, response?: Response) {
     const googleUser = await this.googleAuthService.verifyToken(
       googleTokenDto.token,
     );
 
     let user = await this.usersService.findUserByEmailOrNull(googleUser.email);
 
+    // ================= LOGIN =================
     if (user) {
-      const tokens = await this.generateTokenProvider.generateTokens(user);
-      return {
-        success: true,
-        message: 'Author logged in via Google',
-        data: {
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-          },
-          ...tokens,
-        },
-      };
+      if (user.role !== Role.AUTHOR) {
+        throw new UnauthorizedException(
+          `This email is already registered as ${user.role}`,
+        );
+      }
+
+      const tokens = await this.generateTokenProvider.generateTokens(
+        user,
+        response,
+      );
+
+      return this.buildResponse('Logged in via Google', user, tokens);
     }
 
+    // ================= REGISTER =================
     user = await this.usersService.createGoogleUser({
-      name: googleUser.name,
       email: googleUser.email,
       googleId: googleUser.googleId,
-      role: Role.AUTHOR,
+      role: googleTokenDto.role || Role.AUTHOR,
+      name: googleUser.name || '',
     });
 
-    const author = await this.authorService.create(user);
-    const tokens = await this.generateTokenProvider.generateTokens(user);
+    const author = await this.authorService.createForUser(user);
+
+    const tokens = await this.generateTokenProvider.generateTokens(
+      user,
+      response,
+    );
 
     return {
       success: true,
-      message: 'Author registered successfully via Google',
+      message: 'Registered via Google successfully',
       data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
+        user: this.sanitizeUser(user),
+        author: {
+          id: author.id,
         },
-        author: { id: author.id },
+        ...tokens,
+      },
+    };
+  }
+
+  // =========================
+  // 🧠 HELPERS (CLEAN CODE)
+  // =========================
+
+  private sanitizeUser(user: any) {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+  }
+
+  private buildResponse(message: string, user: any, tokens: any) {
+    return {
+      success: true,
+      message,
+      data: {
+        user: this.sanitizeUser(user),
         ...tokens,
       },
     };

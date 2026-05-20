@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Author } from '../entities/author.entity';
-import { CreateAuthorDto } from '../dto/create-author.dto';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class AuthorService {
@@ -17,20 +17,22 @@ export class AuthorService {
     private readonly authorRepository: Repository<Author>,
   ) {}
 
-  async create(user: any): Promise<Author> {
+  /**
+   * Create Author Profile linked to User
+   */
+  async createForUser(user: User): Promise<Author> {
     try {
-      // 🔐 1. Check if author already exists for this user
       const existingAuthor = await this.authorRepository.findOne({
-        where: { userId: user.id },
+        where: { user: { id: user.id } },
+        relations: ['user'],
       });
 
       if (existingAuthor) {
         return existingAuthor;
       }
 
-      // 👇 2. Create author linked to userId (FK)
       const author = this.authorRepository.create({
-        userId: user.id,
+        user: user,
       });
 
       return await this.authorRepository.save(author);
@@ -50,7 +52,7 @@ export class AuthorService {
   async findAll(): Promise<Author[]> {
     try {
       return await this.authorRepository.find({
-        relations: ['books'],
+        relations: ['user', 'books'], // books agar relation hai to
       });
     } catch (error: any) {
       console.error('Find All Authors Error:', error);
@@ -60,12 +62,26 @@ export class AuthorService {
 
   async findByUserId(userId: number): Promise<Author> {
     const author = await this.authorRepository.findOne({
-      where: { userId },
+      where: { user: { id: userId } },
       relations: ['user'],
     });
 
     if (!author) {
-      throw new NotFoundException('Author not found');
+      throw new NotFoundException(`Author not found for user ID ${userId}`);
+    }
+
+    return author;
+  }
+
+  // Optional: Find by Author ID
+  async findOne(id: number): Promise<Author> {
+    const author = await this.authorRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!author) {
+      throw new NotFoundException(`Author with ID ${id} not found`);
     }
 
     return author;
