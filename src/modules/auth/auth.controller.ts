@@ -1,30 +1,49 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { Response } from 'express'; // ← Yeh change kiya (import type)
+import { request, type Response } from 'express';
 
 import { AuthService } from './providers/auth.service';
 
 import { RegisterMemberDto } from './dto/register-member.dto';
 import { RegisterAuthorDto } from './dto/register-author.dto';
-// import { LoginMemberDto } from './dto/login-member.dto';
-// import { LoginAuthorDto } from './dto/login-author.dto';
 import { GoogleTokenDto } from './social/dtos/google-token.dto';
 
 import { Auth } from './decorators/auth.decorator';
 import { AuthType } from './enum/auth-type.enum';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Auth')
 @Auth(AuthType.None)
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  // Silent Session Check
+  @Get('session')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Silent session check on app start' })
+  async session(@Req() req: any) {
+    // console.log('[Session] Cookies:', req.cookies);
+    // console.log('[Session] All cookies:', req.cookies);
+    // console.log('[Session] access_token:', req.cookies?.access_token);
+
+    if (!req.user) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.authService.getSession(req.user.id);
+  }
 
   // ════════════════════════════
   // MEMBER — REGISTER
@@ -48,29 +67,6 @@ export class AuthController {
   }
 
   // ════════════════════════════
-  // MEMBER — LOGIN
-  // ════════════════════════════
-  // @Post('member/login')
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({ summary: 'Member login (email + password)' })
-  // loginMember(
-  //   @Body() dto: LoginMemberDto,
-  //   @Res({ passthrough: true }) response: Response,
-  // ) {
-  //   return this.authService.loginMember(dto, response);
-  // }
-
-  // @Post('member/login/google')
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({ summary: 'Member login via Google OAuth' })
-  // loginMemberGoogle(
-  //   @Body() dto: GoogleTokenDto,
-  //   @Res({ passthrough: true }) response: Response,
-  // ) {
-  //   return this.authService.loginMemberGoogle(dto, response);
-  // }
-
-  // ════════════════════════════
   // AUTHOR — REGISTER
   // ════════════════════════════
   @Post('author/register')
@@ -90,27 +86,4 @@ export class AuthController {
   ) {
     return this.authService.registerAuthorGoogle(dto, response);
   }
-
-  // ════════════════════════════
-  // AUTHOR — LOGIN
-  // ════════════════════════════
-  // @Post('author/login')
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({ summary: 'Author login (email + password)' })
-  // loginAuthor(
-  //   @Body() dto: LoginAuthorDto,
-  //   @Res({ passthrough: true }) response: Response,
-  // ) {
-  //   return this.authService.loginAuthor(dto, response);
-  // }
-
-  // @Post('author/login/google')
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({ summary: 'Author login via Google OAuth' })
-  // loginAuthorGoogle(
-  //   @Body() dto: GoogleTokenDto,
-  //   @Res({ passthrough: true }) response: Response,
-  // ) {
-  //   return this.authService.loginAuthorGoogle(dto, response);
-  // }
 }

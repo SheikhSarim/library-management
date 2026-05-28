@@ -1,25 +1,29 @@
-// import { Inject, Injectable } from "@nestjs/common";
-// import { PassportStrategy } from "@nestjs/passport";
-// import { ExtractJwt, Strategy } from "passport-jwt";
-// import type { ConfigType } from "@nestjs/config";
-// import jwtConfig from "../config/jwt.config";
-// import { ActiveUser } from "../interface/active-user.interface";
-// import { REQUEST_USER_KEY } from "../constants/auth.constants";
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
 
-// @Injectable()
-// export class JwtStrategy extends PassportStrategy(Strategy) {
-//   constructor(
-//     @Inject(jwtConfig.KEY)
-//     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
-//   ) {
-//     super({
-//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//       secretOrKey: jwtConfiguration.secret,
-//       ignoreExpiration: false,
-//     });
-//   }
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly configService: ConfigService) {
+    const jwtSecret =
+      configService.get<string>('JWT_SECRET') ?? 'fallbackSecret';
+    super({
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req) => req?.cookies?.access_token,
+      ]),
+      ignoreExpiration: false,
+      secretOrKey: jwtSecret,
+    });
+  }
 
-//   async validate(payload: ActiveUser) {
-//     return payload;
-//   }
-// }
+  async validate(payload: any) {
+    console.log('🔍 JWT Payload:', payload);
+
+    return {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role,
+    };
+  }
+}
