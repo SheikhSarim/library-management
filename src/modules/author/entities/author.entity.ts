@@ -1,4 +1,3 @@
-// src/modules/author/entities/author.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,

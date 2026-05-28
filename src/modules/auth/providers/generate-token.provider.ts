@@ -4,7 +4,7 @@ import type { ConfigType } from '@nestjs/config';
 import jwtConfig from '../config/jwt.config';
 import { ActiveUser } from '../interface/active-user.interface';
 import { User } from '../../users/entities/user.entity';
-import { Response } from 'express';   // ← Yeh add kiya
+import { Response } from 'express';  
 
 @Injectable()
 export class GenerateTokenProvider {
@@ -28,12 +28,9 @@ export class GenerateTokenProvider {
     );
   }
 
-  /**
-   * Updated generateTokens - Cookies + Response Body dono support
-   */
   async generateTokens(
     user: User,
-    response?: Response,           // ← Optional for cookie support
+    response?: Response,      
   ): Promise<{ accessToken: string; refreshToken: string }> {
     
     const payload: ActiveUser = {
@@ -51,15 +48,15 @@ export class GenerateTokenProvider {
     if (response) {
       // Access Token Cookie
       response.cookie('access_token', accessToken, {
-        httpOnly: false,           // Browser JS se access kar sakein (dev)
-        secure: false,             // HTTP ke liye false
+        httpOnly: true,          
+        secure: false,      
         sameSite: 'lax',
         maxAge: this.jwtConfiguration.accessTokenTtl * 1000,
       });
 
       // Refresh Token Cookie
       response.cookie('refresh_token', refreshToken, {
-        httpOnly: false,
+        httpOnly: true,
         secure: false,
         sameSite: 'lax',
         maxAge: this.jwtConfiguration.refreshTokenTtl * 1000,

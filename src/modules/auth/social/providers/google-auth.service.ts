@@ -16,7 +16,9 @@ export class GoogleAuthService implements OnModuleInit {
   onModuleInit() {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     if (!clientId) {
-      console.warn('⚠️ GOOGLE_CLIENT_ID is not defined in environment variables');
+      console.warn(
+        '⚠️ GOOGLE_CLIENT_ID is not defined in environment variables',
+      );
     }
 
     this.oauthClient = new OAuth2Client({
@@ -34,15 +36,19 @@ export class GoogleAuthService implements OnModuleInit {
 
       const payload = ticket.getPayload();
 
+      console.log(payload);
+
       if (!payload?.email) {
-        throw new UnauthorizedException('Could not extract email from Google token.');
+        throw new UnauthorizedException(
+          'Could not extract email from Google token.',
+        );
       }
 
       return {
         googleId: payload.sub,
         email: payload.email,
         name: payload.name ?? payload.email.split('@')[0],
-        // picture: payload.picture,        
+        // picture: payload.picture,
       };
     } catch (error: any) {
       console.error('Google Token Verification Error:', error.message);

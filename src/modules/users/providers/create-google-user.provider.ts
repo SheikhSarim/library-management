@@ -1,4 +1,3 @@
-// src/modules/users/providers/create-google-user.provider.ts
 import { Injectable, RequestTimeoutException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,9 +13,9 @@ export class CreateGoogleUserProvider {
 
   async createGoogleUser(dto: CreateGoogleUserDto): Promise<User> {
     const user = this.usersRepository.create({
-      email: dto.email, // ← Yeh zaroori tha
+      email: dto.email,
       googleId: dto.googleId,
-      role: dto.role || 'MEMBER', // fallback
+      role: dto.role,
     });
 
     try {
