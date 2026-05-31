@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { request, type Response } from 'express';
+import { type Request, type Response } from 'express';
 
 import { AuthService } from './providers/auth.service';
 
@@ -43,6 +43,20 @@ export class AuthController {
     }
 
     return this.authService.getSession(req.user.id);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh access token using refresh_token cookie',
+    description:
+      'refresh_token cookie ya x-refresh-token header se new access token issue hoga.',
+  })
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.authService.refresh(request, response);
   }
 
   // ════════════════════════════

@@ -22,6 +22,7 @@ import { GoogleAuthModule } from './social/google.module';
 import { AuthorModule } from '../author/author.module';
 import { RegisterAuthorProvider } from './providers/register-author.provider';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { RefreshProvider } from './providers/refresh.provider';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     AuthService,
     UsersModule,
     JwtStrategy,
+    RefreshProvider,
 
     RegisterMemberProvider,
     RegisterAuthorProvider,
