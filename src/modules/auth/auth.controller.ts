@@ -59,6 +59,17 @@ export class AuthController {
     return this.authService.refresh(request, response);
   }
 
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+
+    return {
+      success: true,
+      message: 'Logged out successfully',
+    };
+  }
   // ════════════════════════════
   // MEMBER — REGISTER
   // ════════════════════════════
