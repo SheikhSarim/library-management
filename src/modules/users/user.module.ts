@@ -7,9 +7,11 @@ import { CreateUserProvider } from './providers/create-user.provider';
 import { FindUserByEmailProvider } from './providers/find-user-by-email.provider';
 import { FindUserByIdProvider } from './providers/find-user-by-id.provider';
 import { CreateGoogleUserProvider } from './providers/create-google-user.provider';
+import { Member } from '../member/entities/member.entity';
+import { Author } from '../author/entities/author.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User, Member, Author])],
   controllers: [UsersController],
   providers: [
     UsersService,

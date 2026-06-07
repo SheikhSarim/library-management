@@ -18,13 +18,15 @@ import { ApiProperty } from '@nestjs/swagger';
 export class Member {
   @PrimaryGeneratedColumn()
   id!: number;
+  
+  @Column({ unique: true })
+  userId!: number;
 
-  @ApiProperty()
   @OneToOne(() => User, (user) => user.member)
-  @JoinColumn()
+  @JoinColumn({ name: 'userId' })
   user!: User;
 
-  @Column({ length: 100, nullable: true }) 
+  @Column({ length: 100, nullable: true })
   name?: string;
 
   @Column({ nullable: true })

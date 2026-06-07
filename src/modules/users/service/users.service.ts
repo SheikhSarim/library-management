@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { User } from '../entities/user.entity';
 import { CreateUserProvider } from '../providers/create-user.provider';
@@ -6,10 +6,24 @@ import { FindUserByEmailProvider } from '../providers/find-user-by-email.provide
 import { FindUserByIdProvider } from '../providers/find-user-by-id.provider';
 import { CreateGoogleUserProvider } from '../providers/create-google-user.provider';
 import { CreateGoogleUserDto } from '../dto/create-google-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Member } from '../../member/entities/member.entity';
+import { Author } from '../../author/entities/author.entity';
+import { CompleteProfileDto } from '../dto/complete-profile.dto';
+import { Role } from '../../../common/enum/roles.enum';
 
 @Injectable()
 export class UsersService {
   constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Member)
+    private readonly memberRepository: Repository<Member>,
+
+    @InjectRepository(Author)
+    private readonly authorRepository: Repository<Author>,
     private readonly createUserProvider: CreateUserProvider,
     private readonly findUserByEmailProvider: FindUserByEmailProvider,
     private readonly findUserByIdProvider: FindUserByIdProvider,
@@ -34,5 +48,36 @@ export class UsersService {
 
   async createGoogleUser(dto: CreateGoogleUserDto): Promise<User> {
     return this.createGoogleUserProvider.createGoogleUser(dto);
+  }
+
+  async getMe(userId: number) {
+    return this.userRepository.findOne({
+      where: { id: userId },
+      relations: {
+        member: true,
+        author: true,
+      },
+    });
+  }
+  async completeProfile(userId: number, dto: CompleteProfileDto) {
+    if (!userId) throw new NotFoundException('Invalid user');
+
+    const user = await this.userRepository.findOneBy({ id: userId });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    if (user.role === Role.MEMBER) {
+      await this.memberRepository.update({ user: { id: userId } }, dto);
+    }
+
+    if (user.role === Role.AUTHOR) {
+      await this.authorRepository.update({ user: { id: userId } }, dto);
+    }
+
+    await this.userRepository.update(userId, {
+      isProfileCompleted: true,
+    });
+
+    return this.getMe(userId);
   }
 }

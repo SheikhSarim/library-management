@@ -15,12 +15,15 @@ import { Book } from '../../book/entities/book.entity';
 export class Author {
   @PrimaryGeneratedColumn()
   id!: number;
+  
+  @Column({ unique: true })
+  userId!: number;
 
   @OneToOne(() => User, (user) => user.author)
-  @JoinColumn()
+  @JoinColumn({ name: 'userId' })
   user!: User;
 
-  @Column({ length: 100, nullable: true }) 
+  @Column({ length: 100, nullable: true })
   name?: string;
 
   @Column({ nullable: true })
