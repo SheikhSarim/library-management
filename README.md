@@ -25,6 +25,9 @@ A full-featured Library Management System backend with JWT authentication, role-
 ## 🧩 Features
 
 * 🔐 JWT Authentication with Access & Refresh Tokens
+* 🔄 Session Management (`auth/session`)
+* ♻️ Refresh Token Rotation (`auth/refresh`)
+* 🚪 Secure Logout with Cookie Cleanup
 * 🔑 Google OAuth 2.0 Authentication
 * 👥 Role-Based Access Control (RBAC)
 * 👤 Member Management System
@@ -96,6 +99,35 @@ Borrowing System
 
 ## 🔐 Authentication Flow
 
+### Session Lifecycle
+
+```txt
+Login / Register / Google OAuth
+                ↓
+      Access Token + Refresh Token
+                ↓
+       Stored in HTTP-Only Cookies
+                ↓
+         Protected API Requests
+                ↓
+      auth/session → Get Session
+                ↓
+       Session Valid?
+          /     \
+        Yes      No (401)
+         |           |
+ Return User     auth/refresh
+    Info              ↓
+                       New Tokens
+                          ↓
+                   auth/session
+                          ↓
+                    Return User Info
+                          ↓
+                    auth/logout
+                          ↓
+                      End Session
+```
 ### Manual Register/Login
 
 ```txt
@@ -206,6 +238,9 @@ http://localhost:3000/api
 * Book creation restricted to AUTHOR role
 * JWT guard applied globally
 * Roles guard enforces RBAC
+* Session endpoint returns authenticated user details
+* Refresh endpoint issues new access/refresh token pair
+* Logout endpoint clears authentication cookies securely
 
 ---
 
